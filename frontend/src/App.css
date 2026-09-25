@@ -1,0 +1,172 @@
+* {
+  box-sizing: border-box;
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  text-align: left;
+}
+
+.app-header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.app-header p {
+  color: #888;
+  margin-top: 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 800px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.input-panel,
+.results-panel {
+  background: #1a1a1a;
+  border: 1px solid #2e2e2e;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.source-field {
+  margin-bottom: 1rem;
+}
+
+.source-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-bottom: 0.4rem;
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.mode-toggle button {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  background: #111;
+  border: 1px solid #333;
+  color: #999;
+}
+
+.mode-toggle button.active {
+  background: #646cff;
+  border-color: #646cff;
+  color: #fff;
+}
+
+.file-drop {
+  border: 1px dashed #333;
+  border-radius: 8px;
+  padding: 0.8rem;
+  background: #111;
+}
+
+.file-drop input[type="file"] {
+  color: #ccc;
+  font-size: 0.85rem;
+  width: 100%;
+}
+
+.file-name {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: #4ade80;
+}
+
+.file-hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.7rem;
+  color: #666;
+}
+
+.input-panel textarea,
+.cover-letter {
+  width: 100%;
+  margin-top: 0.4rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #111;
+  color: #eee;
+  resize: vertical;
+}
+
+.input-panel button {
+  width: 100%;
+  padding: 0.7rem;
+  font-weight: 600;
+}
+
+.error {
+  color: #ff6b6b;
+  margin-top: 0.75rem;
+}
+
+.placeholder {
+  color: #777;
+}
+
+.score-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.score-circle {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid #646cff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.tag-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 1.5rem;
+}
+
+.tag-list li {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.tag-list.matched li {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+
+.tag-list.missing li {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
