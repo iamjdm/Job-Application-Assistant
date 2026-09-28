@@ -1,10 +1,10 @@
 flask==3.0.3
-flask-cors==4.0.1
+flask-cors==6.0.5
 groq>=0.31.0
 requests==2.32.3
 trafilatura==1.12.2
 python-dotenv==1.0.1
-pypdf==5.1.0
+pypdf==6.19.0
 python-docx==1.1.2
 reportlab==4.2.5
 Flask-Limiter==4.1.1
