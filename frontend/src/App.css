@@ -5,24 +5,56 @@
 .app {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 1.5rem 1.5rem 2rem;
   text-align: left;
 }
 
+.app-header {
+  margin-bottom: 1.25rem;
+}
+
 .app-header h1 {
-  margin-bottom: 0.25rem;
+  font-size: 1.6rem;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.01em;
 }
 
 .app-header p {
-  color: #888;
-  margin-top: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
 }
 
 .layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  margin-top: 1.5rem;
+  align-items: start;
+}
+
+.input-panel,
+.results-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+
+/* Tablets / iPad-sized screens: tighten spacing, still fits two columns
+   until it doesn't (the 800px breakpoint below handles that). */
+@media (max-width: 1024px) {
+  .app {
+    padding: 2rem 1.25rem 3rem;
+  }
+
+  .layout {
+    gap: 1.25rem;
+  }
+
+  .input-panel,
+  .results-panel {
+    padding: 1.25rem;
+  }
 }
 
 @media (max-width: 800px) {
@@ -31,16 +63,57 @@
   }
 }
 
-.input-panel,
-.results-panel {
-  background: #1a1a1a;
-  border: 1px solid #2e2e2e;
-  border-radius: 12px;
-  padding: 1.25rem;
+/* Phones: stack the cover-letter action row, grow touch targets, and
+   stop the resume/job textareas from eating the whole first screen. */
+@media (max-width: 480px) {
+  .app {
+    padding: 1.5rem 1rem 2rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .mode-toggle button,
+  .download-button {
+    padding: 0.5rem 0.8rem;
+    min-height: 44px;
+  }
+
+  .input-panel button[type="submit"] {
+    min-height: 48px;
+  }
+
+  .input-panel textarea {
+    height: 8rem;
+  }
+
+  .cover-letter-header {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .download-buttons {
+    width: 100%;
+  }
+
+  .download-button {
+    flex: 1;
+  }
+
+  .score-section {
+    gap: 1rem;
+  }
+
+  .score-circle {
+    width: 56px;
+    height: 56px;
+    font-size: 1.1rem;
+  }
 }
 
 .source-field {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .source-field-header {
@@ -48,102 +121,210 @@
   align-items: center;
   justify-content: space-between;
   font-size: 0.85rem;
-  color: #aaa;
-  margin-bottom: 0.4rem;
+  font-weight: 500;
+  color: var(--text-h);
+  margin-bottom: 0.5rem;
 }
 
 .mode-toggle {
   display: flex;
-  gap: 0.3rem;
+  gap: 0.25rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
 }
 
 .mode-toggle button {
-  padding: 0.2rem 0.6rem;
+  padding: 0.3rem 0.7rem;
   font-size: 0.75rem;
-  background: #111;
-  border: 1px solid #333;
-  color: #999;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mode-toggle button:hover {
+  color: var(--text-h);
 }
 
 .mode-toggle button.active {
-  background: #646cff;
-  border-color: #646cff;
-  color: #fff;
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.input-panel textarea,
+.cover-letter {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input-panel textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.input-panel textarea:focus,
+.cover-letter:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.tone-field {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-h);
+  margin-bottom: 1rem;
+}
+
+.tone-field select {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.tone-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
 .file-drop {
-  border: 1px dashed #333;
+  border: 1px dashed var(--border);
   border-radius: 8px;
-  padding: 0.8rem;
-  background: #111;
+  padding: 1rem;
+  background: var(--bg);
 }
 
 .file-drop input[type="file"] {
-  color: #ccc;
+  color: var(--text);
   font-size: 0.85rem;
   width: 100%;
 }
 
 .file-name {
   display: block;
-  margin-top: 0.4rem;
+  margin-top: 0.5rem;
   font-size: 0.8rem;
-  color: #4ade80;
+  color: var(--success);
+  font-weight: 500;
 }
 
 .file-hint {
-  margin: 0.4rem 0 0;
-  font-size: 0.7rem;
-  color: #666;
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
-.input-panel textarea,
-.cover-letter {
+.input-panel button[type="submit"] {
   width: 100%;
-  margin-top: 0.4rem;
-  font-family: inherit;
-  font-size: 0.9rem;
-  padding: 0.6rem;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background: #111;
-  color: #eee;
-  resize: vertical;
-}
-
-.input-panel button {
-  width: 100%;
-  padding: 0.7rem;
+  padding: 0.75rem;
+  margin-top: 0.25rem;
+  font-size: 0.95rem;
   font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.input-panel button[type="submit"]:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.input-panel button[type="submit"]:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
 }
 
 .error {
-  color: #ff6b6b;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
   margin-top: 0.75rem;
 }
 
 .placeholder {
-  color: #777;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.results-panel h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0 0 0.6rem;
 }
 
 .score-section {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .score-circle {
   flex-shrink: 0;
-  width: 72px;
-  height: 72px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
-  border: 3px solid #646cff;
+  border: 4px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 700;
+  color: var(--text-h);
+}
+
+.score-circle.tier-high {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.score-circle.tier-mid {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.score-circle.tier-low {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.score-section p {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
 }
 
 .tag-list {
@@ -152,21 +333,64 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin: 0.5rem 0 1.5rem;
+  margin: 0 0 1.5rem;
 }
 
 .tag-list li {
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.7rem;
   border-radius: 999px;
   font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid transparent;
 }
 
 .tag-list.matched li {
-  background: rgba(74, 222, 128, 0.15);
-  color: #4ade80;
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  color: var(--success);
 }
 
 .tag-list.missing li {
-  background: rgba(248, 113, 113, 0.15);
-  color: #f87171;
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+.cover-letter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.cover-letter-header h3 {
+  margin: 0;
+}
+
+.download-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.download-button {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.download-button:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.download-button:disabled {
+  color: var(--text-muted);
+  background: var(--bg);
+  cursor: not-allowed;
 }

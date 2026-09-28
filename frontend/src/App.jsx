@@ -1,7 +1,15 @@
 import { useState } from "react";
 import "./App.css";
 
-const API_URL = "http://localhost:5000/api/analyze";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = `${API_BASE}/api/analyze`;
+const EXPORT_URL = `${API_BASE}/api/export`;
+
+function scoreTier(score) {
+  if (score >= 75) return "tier-high";
+  if (score >= 45) return "tier-mid";
+  return "tier-low";
+}
 
 function SourceField({ label, textPlaceholder, textValue, onTextChange, file, onFileChange, rows }) {
   const [mode, setMode] = useState("paste");
@@ -57,7 +65,11 @@ function App() {
   const [resumeFile, setResumeFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [tone, setTone] = useState("professional");
   const [result, setResult] = useState(null);
+  const [coverLetterText, setCoverLetterText] = useState("");
+  const [downloadFormat, setDownloadFormat] = useState(null);
+  const [downloadError, setDownloadError] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -66,7 +78,7 @@ function App() {
     setLoading(true);
 
     const formData = new FormData();
-    formData.append("tone", "professional");
+    formData.append("tone", tone);
     if (jobFile) {
       formData.append("job_file", jobFile);
     } else {
@@ -85,10 +97,38 @@ function App() {
         throw new Error(data.error || "Something went wrong.");
       }
       setResult(data);
+      setCoverLetterText(data.cover_letter);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDownload(fmt) {
+    setDownloadError("");
+    setDownloadFormat(fmt);
+    try {
+      const res = await fetch(`${EXPORT_URL}/${fmt}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cover_letter: coverLetterText }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Couldn't generate the file.");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cover_letter.${fmt}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setDownloadError(err.message);
+    } finally {
+      setDownloadFormat(null);
     }
   }
 
@@ -121,6 +161,16 @@ function App() {
             rows={12}
           />
 
+          <label className="tone-field">
+            Cover letter tone
+            <select value={tone} onChange={(e) => setTone(e.target.value)}>
+              <option value="professional">Professional</option>
+              <option value="formal">Formal</option>
+              <option value="conversational">Conversational</option>
+              <option value="enthusiastic">Enthusiastic</option>
+            </select>
+          </label>
+
           <button type="submit" disabled={loading}>
             {loading ? "Analyzing..." : "Analyze"}
           </button>
@@ -137,7 +187,9 @@ function App() {
           {result && (
             <>
               <section className="score-section">
-                <div className="score-circle">{result.score}</div>
+                <div className={`score-circle ${scoreTier(result.score)}`}>
+                  {result.score}
+                </div>
                 <p>{result.summary}</p>
               </section>
 
@@ -160,11 +212,32 @@ function App() {
               </section>
 
               <section>
-                <h3>Cover letter</h3>
+                <div className="cover-letter-header">
+                  <h3>Cover letter (editable)</h3>
+                  <div className="download-buttons">
+                    <button
+                      type="button"
+                      className="download-button"
+                      disabled={downloadFormat !== null}
+                      onClick={() => handleDownload("pdf")}
+                    >
+                      {downloadFormat === "pdf" ? "Preparing…" : "Download PDF"}
+                    </button>
+                    <button
+                      type="button"
+                      className="download-button"
+                      disabled={downloadFormat !== null}
+                      onClick={() => handleDownload("docx")}
+                    >
+                      {downloadFormat === "docx" ? "Preparing…" : "Download Word"}
+                    </button>
+                  </div>
+                </div>
+                {downloadError && <p className="error">{downloadError}</p>}
                 <textarea
                   className="cover-letter"
-                  value={result.cover_letter}
-                  readOnly
+                  value={coverLetterText}
+                  onChange={(e) => setCoverLetterText(e.target.value)}
                   rows={14}
                 />
               </section>
