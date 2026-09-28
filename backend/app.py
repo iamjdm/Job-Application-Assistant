@@ -167,7 +167,7 @@ if __name__ == "__main__":
 
     if debug:
         # Flask's dev server: auto-reload + interactive debugger, local use only.
-        app.run(debug=True, host=host, port=port)
+        app.run(debug=debug, host=host, port=port)
     else:
         # Flask's dev server explicitly warns against production use — waitress
         # is a real production-grade WSGI server, and unlike gunicorn it also
