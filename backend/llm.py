@@ -35,11 +35,20 @@ markdown fences, matching this exact shape:
 }
 """
 
-COVER_LETTER_SYSTEM_PROMPT = """You write concise, specific cover letters. Use the \
+COVER_LETTER_SYSTEM_PROMPT = """You write concise, specific cover letters. Use ONLY the \
 candidate's actual resume details and the job description's language. No generic \
 filler ("I am writing to express my interest..."). Keep it under 300 words. \
 Respond with plain text only — no markdown, no subject line, no placeholders like \
 [Company Name] left unfilled if the company name is inferable from the job description.
+
+Never invent skills, tools, projects, or experience that aren't in the resume text — \
+this is the most important rule. If the resume is a poor or unrelated fit for the role, \
+do not paper over that by fabricating relevant-sounding work. Instead, write an honest \
+letter that (a) states genuine transferable qualities actually evidenced in the resume \
+(e.g. discipline, leadership, attention to detail — only if the resume actually shows \
+them), and (b) does not claim direct experience with tools/skills the resume never \
+mentions. It is fine, and better, for the letter to read as a weaker fit than to contain \
+a single fabricated claim.
 
 Do NOT put the candidate's name or contact info (email, LinkedIn, GitHub, phone) at the \
 top as a header block. Start directly with "Dear ...". End with a closing line, then \

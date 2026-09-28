@@ -28,12 +28,20 @@ def extract_text_from_file(file_storage) -> str:
 
     raw = file_storage.read()
 
-    if ext == ".txt":
-        text = raw.decode("utf-8", errors="ignore")
-    elif ext == ".pdf":
-        text = _extract_pdf(raw)
-    else:  # .docx
-        text = _extract_docx(raw)
+    try:
+        if ext == ".txt":
+            text = raw.decode("utf-8", errors="ignore")
+        elif ext == ".pdf":
+            text = _extract_pdf(raw)
+        else:  # .docx
+            text = _extract_docx(raw)
+    except FileExtractionError:
+        raise
+    except Exception as e:
+        raise FileExtractionError(
+            f"Couldn't read '{filename}' — the file may be corrupted or not a valid "
+            f"{ext[1:].upper()}."
+        ) from e
 
     text = text.strip()
     if not text:

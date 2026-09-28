@@ -16,6 +16,15 @@ app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
 CORS(app)
 
+# Keeps combined prompt size well under Groq's per-minute token limits — a real
+# resume or job posting is a few thousand characters; anything past this is almost
+# always scraped boilerplate (nav menus, related-postings lists, etc.), not signal.
+MAX_INPUT_CHARS = 6000
+
+
+def _truncate(text: str) -> str:
+    return text[:MAX_INPUT_CHARS]
+
 
 @app.post("/api/analyze")
 def analyze():
@@ -38,6 +47,9 @@ def analyze():
 
     if not resume_text.strip():
         return jsonify({"error": "Resume text is required."}), 400
+
+    resume_text = _truncate(resume_text)
+    job_description = _truncate(job_description)
 
     try:
         match = analyze_match(resume_text, job_description)
