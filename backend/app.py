@@ -1,5 +1,6 @@
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 import groq
 from dotenv import load_dotenv
@@ -12,7 +13,10 @@ from flask_talisman import Talisman
 from export import build_docx, build_pdf
 from extractor import ExtractionError, get_job_description
 from file_extractor import FileExtractionError, extract_text_from_file
-from llm import analyze_match, generate_cover_letter
+from llm import analyze_match, generate_cover_letter, tailor_resume, verify_cover_letter
+from resume_checks import find_unsupported_facts
+from resume_export import build_resume_docx, build_resume_pdf
+# from resume_export import resume_to_text  # re-enable with before/after scoring
 
 load_dotenv()
 
@@ -46,14 +50,11 @@ limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 def rate_limited(_e):
     return jsonify({"error": "Too many requests — please wait a moment and try again."}), 429
 
-# Keeps combined prompt size well under Groq's per-minute token limits — a real
-# resume or job posting is a few thousand characters; anything past this is almost
-# always scraped boilerplate (nav menus, related-postings lists, etc.), not signal.
-MAX_INPUT_CHARS = 6000
-
-
-def _truncate(text: str) -> str:
-    return text[:MAX_INPUT_CHARS]
+# A job posting is a few thousand characters; anything past this is almost always
+# scraped boilerplate (nav menus, related-postings lists, etc.), not signal.
+# Resumes get a far looser cap because the tailored output must include all of them.
+MAX_JOB_CHARS = 6000
+MAX_RESUME_CHARS = 15000
 
 
 @app.post("/api/analyze")
@@ -79,8 +80,8 @@ def analyze():
     if not resume_text.strip():
         return jsonify({"error": "Resume text is required."}), 400
 
-    resume_text = _truncate(resume_text)
-    job_description = _truncate(job_description)
+    resume_text = resume_text[:MAX_RESUME_CHARS]
+    job_description = job_description[:MAX_JOB_CHARS]
 
     try:
         match = analyze_match(resume_text, job_description)
@@ -95,7 +96,14 @@ def analyze():
                     )
                 }
             ), 400
-        cover_letter = generate_cover_letter(resume_text, job_description, tone)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            cover_future = pool.submit(generate_cover_letter, resume_text, job_description, tone)
+            tailor_future = pool.submit(tailor_resume, resume_text, job_description)
+            cover_letter = cover_future.result()
+            tailored_resume = tailor_future.result()
+        cover_warnings = verify_cover_letter(resume_text, cover_letter)
+        # Before/after scoring disabled to conserve Groq free-tier quota.
+        # tailored_match = analyze_match(resume_to_text(tailored_resume), job_description)
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 500
     except groq.AuthenticationError:
@@ -112,6 +120,9 @@ def analyze():
     except json.JSONDecodeError:
         app.logger.exception("Groq returned non-JSON for the match analysis")
         return jsonify({"error": "The model returned an unexpected response. Try again."}), 502
+    except ValueError:
+        app.logger.exception("Tailored resume failed validation")
+        return jsonify({"error": "Couldn't build a tailored resume from this input. Try again."}), 502
 
     return jsonify(
         {
@@ -120,6 +131,10 @@ def analyze():
             "missing_skills": match.get("missing_skills", []),
             "summary": match.get("summary", ""),
             "cover_letter": cover_letter,
+            "tailored_resume": tailored_resume,
+            "fact_warnings": find_unsupported_facts(resume_text, tailored_resume),
+            "cover_letter_warnings": cover_warnings,
+            # "tailored_match": {...}  # re-enable with before/after scoring
             "job_description": job_description,
         }
     )
@@ -147,6 +162,29 @@ def export_cover_letter(fmt):
         data,
         mimetype=mimetype,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.post("/api/export/resume-<fmt>")
+@limiter.limit("30 per minute")
+def export_resume(fmt):
+    resume = (request.get_json(silent=True) or {}).get("resume")
+    if not isinstance(resume, dict) or not resume.get("sections"):
+        return jsonify({"error": "No resume data provided."}), 400
+
+    if fmt == "pdf":
+        data = build_resume_pdf(resume)
+        mimetype = "application/pdf"
+    elif fmt == "docx":
+        data = build_resume_docx(resume)
+        mimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    else:
+        return jsonify({"error": "Format must be 'pdf' or 'docx'."}), 400
+
+    return Response(
+        data,
+        mimetype=mimetype,
+        headers={"Content-Disposition": f'attachment; filename="tailored_resume.{fmt}"'},
     )
 
 
