@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -9,6 +9,58 @@ function scoreTier(score) {
   if (score >= 75) return "tier-high";
   if (score >= 45) return "tier-mid";
   return "tier-low";
+}
+
+function DownloadMenu({ disabled, busy, onPick }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    function closeOnOutsideClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
+
+  return (
+    <div className="download-menu" ref={ref}>
+      <button
+        type="button"
+        className="download-button"
+        disabled={disabled || busy}
+        onClick={() => setOpen((on) => !on)}
+      >
+        {busy ? "Preparing…" : "Download ▾"}
+      </button>
+      {open && (
+        <div className="download-menu-list">
+          <button type="button" onClick={() => { setOpen(false); onPick("pdf"); }}>
+            PDF
+          </button>
+          <button type="button" onClick={() => { setOpen(false); onPick("docx"); }}>
+            Word
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function cleanResume(resume) {
+  const copy = structuredClone(resume);
+  copy.contact = (copy.contact || []).map((s) => s.trim()).filter(Boolean);
+  for (const section of copy.sections) {
+    if (section.type === "entries") {
+      for (const entry of section.entries) {
+        entry.bullets = (entry.bullets || []).map((b) => b.trim()).filter(Boolean);
+      }
+    }
+    if (section.type === "skills") {
+      section.items = section.items.filter((item) => item.label || item.value);
+    }
+  }
+  return copy;
 }
 
 function SourceField({ label, textPlaceholder, textValue, onTextChange, file, onFileChange, rows }) {
@@ -58,6 +110,145 @@ function SourceField({ label, textPlaceholder, textValue, onTextChange, file, on
   );
 }
 
+function ResumePreview({ resume }) {
+  return (
+    <article className="resume-preview">
+      <h2 className="rp-name">{resume.name}</h2>
+      <p className="rp-contact">{(resume.contact || []).join(" | ")}</p>
+      {resume.sections.map((section, si) => (
+        <div className="rp-section" key={si}>
+          <h4>{section.heading}</h4>
+          {section.type === "text" && <p>{section.text}</p>}
+          {section.type === "skills" &&
+            section.items.map((item, ii) => (
+              <p key={ii}>
+                <strong>{item.label}:</strong> {item.value}
+              </p>
+            ))}
+          {section.type === "entries" &&
+            section.entries.map((entry, ei) => (
+              <div className="rp-entry" key={ei}>
+                <div className="rp-line">
+                  <strong>{entry.title}</strong>
+                  <span>{entry.title_right}</span>
+                </div>
+                <div className="rp-line">
+                  <em>{entry.subtitle}</em>
+                  <em>{entry.subtitle_right}</em>
+                </div>
+                {entry.text && <p>{entry.text}</p>}
+                <ul>
+                  {(entry.bullets || [])
+                    .filter((b) => b.trim())
+                    .map((b, bi) => (
+                      <li key={bi}>{b}</li>
+                    ))}
+                </ul>
+              </div>
+            ))}
+        </div>
+      ))}
+    </article>
+  );
+}
+
+function ResumeEditor({ resume, onChange }) {
+  function update(mutate) {
+    const copy = structuredClone(resume);
+    mutate(copy);
+    onChange(copy);
+  }
+
+  return (
+    <div className="resume-editor">
+      <input
+        className="resume-name"
+        value={resume.name || ""}
+        onChange={(e) => update((r) => { r.name = e.target.value; })}
+      />
+      <textarea
+        rows={2}
+        placeholder="Contact lines, one per line"
+        value={(resume.contact || []).join("\n")}
+        onChange={(e) => update((r) => { r.contact = e.target.value.split("\n"); })}
+      />
+
+      {resume.sections.map((section, si) => (
+        <div className="resume-section" key={si}>
+          <h4>{section.heading}</h4>
+
+          {section.type === "text" && (
+            <textarea
+              rows={4}
+              value={section.text || ""}
+              onChange={(e) => update((r) => { r.sections[si].text = e.target.value; })}
+            />
+          )}
+
+          {section.type === "skills" &&
+            section.items.map((item, ii) => (
+              <div className="resume-row" key={ii}>
+                <input
+                  placeholder="Category"
+                  value={item.label || ""}
+                  onChange={(e) => update((r) => { r.sections[si].items[ii].label = e.target.value; })}
+                />
+                <input
+                  placeholder="Items"
+                  value={item.value || ""}
+                  onChange={(e) => update((r) => { r.sections[si].items[ii].value = e.target.value; })}
+                />
+              </div>
+            ))}
+
+          {section.type === "entries" &&
+            section.entries.map((entry, ei) => (
+              <div className="resume-entry" key={ei}>
+                <div className="resume-row">
+                  <input
+                    placeholder="Title"
+                    value={entry.title || ""}
+                    onChange={(e) => update((r) => { r.sections[si].entries[ei].title = e.target.value; })}
+                  />
+                  <input
+                    placeholder="Date or location"
+                    value={entry.title_right || ""}
+                    onChange={(e) => update((r) => { r.sections[si].entries[ei].title_right = e.target.value; })}
+                  />
+                </div>
+                <div className="resume-row">
+                  <input
+                    placeholder="Organization or subtitle"
+                    value={entry.subtitle || ""}
+                    onChange={(e) => update((r) => { r.sections[si].entries[ei].subtitle = e.target.value; })}
+                  />
+                  <input
+                    placeholder="Location or date"
+                    value={entry.subtitle_right || ""}
+                    onChange={(e) => update((r) => { r.sections[si].entries[ei].subtitle_right = e.target.value; })}
+                  />
+                </div>
+                {entry.text !== undefined && (
+                  <textarea
+                    rows={2}
+                    value={entry.text}
+                    onChange={(e) => update((r) => { r.sections[si].entries[ei].text = e.target.value; })}
+                  />
+                )}
+                <textarea
+                  rows={Math.max(2, (entry.bullets || []).length)}
+                  placeholder="Bullets, one per line"
+                  value={(entry.bullets || []).join("\n")}
+                  onChange={(e) => update((r) => { r.sections[si].entries[ei].bullets = e.target.value.split("\n"); })}
+                />
+              </div>
+            ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function App() {
   const [jobText, setJobText] = useState("");
   const [jobFile, setJobFile] = useState(null);
@@ -67,8 +258,14 @@ function App() {
   const [error, setError] = useState("");
   const [tone, setTone] = useState("professional");
   const [result, setResult] = useState(null);
+  const [view, setView] = useState("resume");
+  const [editing, setEditing] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [editingCover, setEditingCover] = useState(false);
+  const [showCoverPreview, setShowCoverPreview] = useState(false);
+  const [resumeData, setResumeData] = useState(null);
   const [coverLetterText, setCoverLetterText] = useState("");
-  const [downloadFormat, setDownloadFormat] = useState(null);
+  const [downloading, setDownloading] = useState(null);
   const [downloadError, setDownloadError] = useState("");
 
   async function handleSubmit(e) {
@@ -97,7 +294,13 @@ function App() {
         throw new Error(data.error || "Something went wrong.");
       }
       setResult(data);
+      setResumeData(data.tailored_resume || null);
       setCoverLetterText(data.cover_letter);
+      setView("resume");
+      setEditing(false);
+      setShowPreview(false);
+      setEditingCover(false);
+      setShowCoverPreview(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -105,31 +308,49 @@ function App() {
     }
   }
 
-  async function handleDownload(fmt) {
+  async function downloadFile(url, body, filename, key) {
     setDownloadError("");
-    setDownloadFormat(fmt);
+    setDownloading(key);
     try {
-      const res = await fetch(`${EXPORT_URL}/${fmt}`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cover_letter: coverLetterText }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Couldn't generate the file.");
       }
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = `cover_letter.${fmt}`;
+      a.href = blobUrl;
+      a.download = filename;
       a.click();
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(blobUrl);
     } catch (err) {
       setDownloadError(err.message);
     } finally {
-      setDownloadFormat(null);
+      setDownloading(null);
     }
+  }
+
+  function handleResumeDownload(fmt) {
+    downloadFile(
+      `${EXPORT_URL}/resume-${fmt}`,
+      { resume: cleanResume(resumeData) },
+      `tailored_resume.${fmt}`,
+      `resume-${fmt}`,
+    );
+  }
+
+  function handleCoverDownload(fmt) {
+    downloadFile(
+      `${EXPORT_URL}/${fmt}`,
+      { cover_letter: coverLetterText },
+      `cover_letter.${fmt}`,
+      fmt,
+    );
   }
 
   return (
@@ -211,36 +432,120 @@ function App() {
                 </ul>
               </section>
 
-              <section>
-                <div className="cover-letter-header">
-                  <h3>Cover letter (editable)</h3>
-                  <div className="download-buttons">
-                    <button
-                      type="button"
-                      className="download-button"
-                      disabled={downloadFormat !== null}
-                      onClick={() => handleDownload("pdf")}
-                    >
-                      {downloadFormat === "pdf" ? "Preparing…" : "Download PDF"}
-                    </button>
-                    <button
-                      type="button"
-                      className="download-button"
-                      disabled={downloadFormat !== null}
-                      onClick={() => handleDownload("docx")}
-                    >
-                      {downloadFormat === "docx" ? "Preparing…" : "Download Word"}
-                    </button>
+              <div className="mode-toggle view-toggle">
+                <button
+                  type="button"
+                  className={view === "resume" ? "active" : ""}
+                  onClick={() => setView("resume")}
+                >
+                  Tailored resume
+                </button>
+                <button
+                  type="button"
+                  className={view === "cover" ? "active" : ""}
+                  onClick={() => setView("cover")}
+                >
+                  Cover letter
+                </button>
+              </div>
+
+              {downloadError && <p className="error">{downloadError}</p>}
+
+              {view === "resume" ? (
+                <section>
+                  <div className="cover-letter-header">
+                    <h3>Tailored resume</h3>
+                    <div className="download-buttons">
+                      <button
+                        type="button"
+                        className="download-button"
+                        disabled={!resumeData}
+                        onClick={() => setShowPreview((on) => !on)}
+                      >
+                        {showPreview ? "Hide preview" : "Show preview"}
+                      </button>
+                      <button
+                        type="button"
+                        className="download-button"
+                        disabled={!resumeData}
+                        onClick={() => setEditing((on) => !on)}
+                      >
+                        {editing ? "Done editing" : "Edit"}
+                      </button>
+                      <DownloadMenu
+                        disabled={!resumeData || downloading !== null}
+                        busy={downloading?.startsWith("resume-")}
+                        onPick={handleResumeDownload}
+                      />
+                    </div>
                   </div>
-                </div>
-                {downloadError && <p className="error">{downloadError}</p>}
-                <textarea
-                  className="cover-letter"
-                  value={coverLetterText}
-                  onChange={(e) => setCoverLetterText(e.target.value)}
-                  rows={14}
-                />
-              </section>
+                  {result.fact_warnings?.length > 0 && (
+                    <div className="fact-warnings">
+                      <strong>Check these before you download:</strong>
+                      <ul>
+                        {result.fact_warnings.map((w, i) => (
+                          <li key={i}>{w}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {resumeData && editing && (
+                    <ResumeEditor resume={resumeData} onChange={setResumeData} />
+                  )}
+                  {resumeData && !editing && showPreview && <ResumePreview resume={resumeData} />}
+                  {!resumeData && (
+                    <p className="placeholder">No tailored resume was returned.</p>
+                  )}
+                </section>
+              ) : (
+                <section>
+                  <div className="cover-letter-header">
+                    <h3>Cover letter</h3>
+                    <div className="download-buttons">
+                      <button
+                        type="button"
+                        className="download-button"
+                        onClick={() => setShowCoverPreview((on) => !on)}
+                      >
+                        {showCoverPreview ? "Hide preview" : "Show preview"}
+                      </button>
+                      <button
+                        type="button"
+                        className="download-button"
+                        onClick={() => setEditingCover((on) => !on)}
+                      >
+                        {editingCover ? "Done editing" : "Edit"}
+                      </button>
+                      <DownloadMenu
+                        disabled={downloading !== null}
+                        busy={downloading === "pdf" || downloading === "docx"}
+                        onPick={handleCoverDownload}
+                      />
+                    </div>
+                  </div>
+                  {result.cover_letter_warnings?.length > 0 && (
+                    <div className="fact-warnings">
+                      <strong>Check these claims before you send it:</strong>
+                      <ul>
+                        {result.cover_letter_warnings.map((w, i) => (
+                          <li key={i}>{w}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {editingCover && (
+                    <textarea
+                      className="cover-letter"
+                      value={coverLetterText}
+                      onChange={(e) => setCoverLetterText(e.target.value)}
+                      rows={14}
+                    />
+                  )}
+                  {!editingCover && showCoverPreview && (
+                    <div className="cover-preview">{coverLetterText}</div>
+                  )}
+                </section>
+              )}
             </>
           )}
         </div>
