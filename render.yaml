@@ -30,3 +30,7 @@ services:
       # Optional: the Flask project's Sentry DSN, for error monitoring.
       - key: SENTRY_DSN
         sync: false
+      # Optional: the React project's Sentry DSN. Lets /api/monitoring forward
+      # frontend error reports, so ad blockers don't drop them.
+      - key: SENTRY_FRONTEND_DSN
+        sync: false

@@ -3,8 +3,10 @@ import math
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import urlparse
 
 import groq
+import requests
 import sentry_sdk
 from dotenv import load_dotenv
 from flask import Flask, Response, jsonify, request
@@ -243,6 +245,52 @@ def too_large(_e):
 @app.get("/api/health")
 def health():
     return jsonify({"status": "ok"})
+
+
+# Frontend Sentry reports come through here instead of going straight to
+# sentry.io, because ad blockers block sentry.io. Only envelopes addressed to
+# our own frontend project are forwarded, so this can't be used as an open relay.
+MAX_SENTRY_ENVELOPE_BYTES = 1024 * 1024
+
+
+def _sentry_project(dsn: str) -> tuple[str, str] | None:
+    """(host, project id) from a DSN like https://key@o1.ingest.sentry.io/123."""
+    parsed = urlparse(dsn)
+    project_id = parsed.path.strip("/")
+    if parsed.scheme != "https" or not parsed.hostname or not project_id.isdigit():
+        return None
+    return parsed.hostname, project_id
+
+
+@app.post("/api/monitoring")
+@limiter.limit("30 per minute")
+def sentry_tunnel():
+    allowed = _sentry_project(os.environ.get("SENTRY_FRONTEND_DSN", ""))
+    if allowed is None:
+        return "", 404
+
+    envelope = request.get_data(cache=False)
+    if len(envelope) > MAX_SENTRY_ENVELOPE_BYTES:
+        return "", 413
+    try:
+        header = json.loads(envelope.split(b"\n", 1)[0])
+        target = _sentry_project(header.get("dsn", ""))
+    except (ValueError, AttributeError):
+        return "", 400
+    if target != allowed:
+        return "", 403
+
+    host, project_id = allowed
+    try:
+        resp = requests.post(
+            f"https://{host}/api/{project_id}/envelope/",
+            data=envelope,
+            headers={"Content-Type": "application/x-sentry-envelope"},
+            timeout=5,
+        )
+    except requests.RequestException:
+        return "", 502
+    return "", resp.status_code
 
 
 if __name__ == "__main__":

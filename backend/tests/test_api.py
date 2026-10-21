@@ -1,4 +1,6 @@
 import io
+import json
+from types import SimpleNamespace
 
 import groq
 import httpx
@@ -137,3 +139,55 @@ def test_cover_letter_export_still_routes_correctly(client):
     response = client.post("/api/export/pdf", json={"cover_letter": "Dear Team,\n\nHello."})
     assert response.status_code == 200
     assert response.data.startswith(b"%PDF")
+
+
+FRONTEND_DSN = "https://abc123@o1.ingest.us.sentry.io/456"
+
+
+def envelope(dsn):
+    header = json.dumps({"event_id": "0" * 32, "dsn": dsn})
+    return f'{header}\n{{"type":"event"}}\n{{"message":"boom"}}\n'.encode()
+
+
+def test_sentry_tunnel_forwards_to_our_project(client, monkeypatch):
+    monkeypatch.setenv("SENTRY_FRONTEND_DSN", FRONTEND_DSN)
+    sent = {}
+
+    def fake_post(url, data, headers, timeout):
+        sent.update(url=url, data=data)
+        return SimpleNamespace(status_code=200)
+
+    monkeypatch.setattr(app_module.requests, "post", fake_post)
+    body = envelope(FRONTEND_DSN)
+    response = client.post("/api/monitoring", data=body, content_type="text/plain")
+    assert response.status_code == 200
+    assert sent == {"url": "https://o1.ingest.us.sentry.io/api/456/envelope/", "data": body}
+
+
+@pytest.mark.parametrize(
+    "dsn",
+    [
+        "https://abc123@o1.ingest.us.sentry.io/999",  # another project
+        "https://abc123@evil.example.com/456",  # another host
+        "http://abc123@o1.ingest.us.sentry.io/456",  # not https
+    ],
+)
+def test_sentry_tunnel_rejects_other_destinations(client, monkeypatch, dsn):
+    monkeypatch.setenv("SENTRY_FRONTEND_DSN", FRONTEND_DSN)
+    monkeypatch.setattr(app_module.requests, "post", lambda *a, **k: pytest.fail("forwarded"))
+    response = client.post("/api/monitoring", data=envelope(dsn), content_type="text/plain")
+    assert response.status_code == 403
+
+
+def test_sentry_tunnel_rejects_garbage(client, monkeypatch):
+    monkeypatch.setenv("SENTRY_FRONTEND_DSN", FRONTEND_DSN)
+    response = client.post("/api/monitoring", data=b"not json\n", content_type="text/plain")
+    assert response.status_code == 400
+
+
+def test_sentry_tunnel_off_without_config(client, monkeypatch):
+    monkeypatch.delenv("SENTRY_FRONTEND_DSN", raising=False)
+    response = client.post(
+        "/api/monitoring", data=envelope(FRONTEND_DSN), content_type="text/plain"
+    )
+    assert response.status_code == 404
