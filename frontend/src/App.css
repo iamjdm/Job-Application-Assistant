@@ -245,6 +245,46 @@
   color: var(--text-muted);
 }
 
+.saved-resume {
+  border: 1px solid var(--success-border);
+  border-radius: 8px;
+  padding: 1rem;
+  background: var(--success-bg);
+}
+
+.saved-resume .file-name {
+  margin-top: 0;
+  word-break: break-word;
+}
+
+.saved-resume-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.saved-resume-actions button,
+.keep-saved-resume {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.saved-resume-actions button.danger {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.keep-saved-resume {
+  margin: -0.5rem 0 1.25rem;
+}
+
 .input-panel button[type="submit"] {
   width: 100%;
   padding: 0.75rem;

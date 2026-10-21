@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:extension": "vite build --config vite.extension.config.js",
+    "build:extension": "vite build --config vite.extension.config.js --mode extension",
     "lint": "oxlint",
     "preview": "vite preview"
   },

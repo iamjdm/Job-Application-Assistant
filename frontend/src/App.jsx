@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
+import { IS_EXTENSION, loadSavedResume, removeSavedResume, saveResume } from "./savedResume";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const API_URL = `${API_BASE}/api/analyze`;
@@ -109,6 +110,32 @@ function SourceField({ label, textPlaceholder, textHint, textValue, onTextChange
           <p className="file-hint">PDF, DOCX, or TXT — max 10 MB</p>
         </div>
       )}
+    </div>
+  );
+}
+
+function SavedResume({ resume, onReplace, onRemove }) {
+  const description = resume.file
+    ? resume.file.name
+    : `Pasted text (${resume.text.trim().split(/\s+/).length} words)`;
+
+  return (
+    <div className="source-field">
+      <div className="source-field-header">
+        <span>Your resume</span>
+      </div>
+      <div className="saved-resume">
+        <span className="file-name">{description}</span>
+        <p className="field-hint">Saved in this browser only, not on our server.</p>
+        <div className="saved-resume-actions">
+          <button type="button" onClick={onReplace}>
+            Replace
+          </button>
+          <button type="button" className="danger" onClick={onRemove}>
+            Remove saved resume
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -272,6 +299,26 @@ function App() {
   const [downloadError, setDownloadError] = useState("");
   // Seconds left before Groq's rate limit resets, after a 429.
   const [cooldown, setCooldown] = useState(0);
+  // Extension only: the resume remembered from an earlier analysis.
+  const [savedResume, setSavedResume] = useState(null);
+  const [replacingResume, setReplacingResume] = useState(false);
+  const usingSavedResume = savedResume !== null && !replacingResume;
+
+  useEffect(() => {
+    if (!IS_EXTENSION) return;
+    loadSavedResume()
+      .then(setSavedResume)
+      .catch(() => {});
+  }, []);
+
+  function handleRemoveSavedResume() {
+    removeSavedResume()
+      .then(() => {
+        setSavedResume(null);
+        setReplacingResume(false);
+      })
+      .catch(() => setError("Couldn't remove the saved resume. Try again."));
+  }
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -296,10 +343,13 @@ function App() {
     } else {
       formData.append("job_input", jobText);
     }
-    if (resumeFile) {
-      formData.append("resume_file", resumeFile);
+    const resumeInput = usingSavedResume
+      ? savedResume
+      : { file: resumeFile, text: resumeFile ? "" : resumeText };
+    if (resumeInput.file) {
+      formData.append("resume_file", resumeInput.file);
     } else {
-      formData.append("resume_text", resumeText);
+      formData.append("resume_text", resumeInput.text);
     }
 
     try {
@@ -319,6 +369,17 @@ function App() {
       setShowPreview(false);
       setEditingCover(false);
       setShowCoverPreview(false);
+      // Remember a new resume only once it has worked for an analysis.
+      if (IS_EXTENSION && !usingSavedResume) {
+        saveResume(resumeInput)
+          .then(() => {
+            setSavedResume(resumeInput);
+            setReplacingResume(false);
+            setResumeFile(null);
+            setResumeText("");
+          })
+          .catch(() => {});
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -374,7 +435,8 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Job Application Assistant</h1>
+        {/* Chrome's side panel already shows the name above the extension. */}
+        {!IS_EXTENSION && <h1>Job Application Assistant</h1>}
         <p>Paste or upload a job posting and your resume.</p>
       </header>
 
@@ -391,15 +453,39 @@ function App() {
             rows={8}
           />
 
-          <SourceField
-            label="Your resume"
-            textPlaceholder="Paste your resume text"
-            textValue={resumeText}
-            onTextChange={setResumeText}
-            file={resumeFile}
-            onFileChange={setResumeFile}
-            rows={12}
-          />
+          {usingSavedResume ? (
+            <SavedResume
+              resume={savedResume}
+              onReplace={() => setReplacingResume(true)}
+              onRemove={handleRemoveSavedResume}
+            />
+          ) : (
+            <>
+              <SourceField
+                label="Your resume"
+                textPlaceholder="Paste your resume text"
+                textHint={
+                  IS_EXTENSION
+                    ? "After your first analysis, your resume is saved in this browser so you only add it once."
+                    : undefined
+                }
+                textValue={resumeText}
+                onTextChange={setResumeText}
+                file={resumeFile}
+                onFileChange={setResumeFile}
+                rows={12}
+              />
+              {replacingResume && (
+                <button
+                  type="button"
+                  className="keep-saved-resume"
+                  onClick={() => setReplacingResume(false)}
+                >
+                  Keep using saved resume
+                </button>
+              )}
+            </>
+          )}
 
           <label className="tone-field">
             Cover letter tone
