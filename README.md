@@ -56,6 +56,23 @@ npm run dev
 
 Runs on `http://localhost:5173` by default.
 
+## Deployment
+
+The backend deploys to [Render](https://render.com) and the frontend to
+[Vercel](https://vercel.com).
+
+1. **Backend:** in Render, create a new Blueprint from this repo. It reads
+   `render.yaml`. Enter `GROQ_API_KEY` when prompted and leave
+   `FRONTEND_ORIGIN` blank for now. Once it's live, note the service URL.
+2. **Frontend:** in Vercel, import the repo, set the root directory to
+   `frontend`, and add `VITE_API_URL` set to the Render URL (no trailing
+   slash). Vite bakes this in at build time, so redeploy if it changes.
+3. **CORS:** back in Render, set `FRONTEND_ORIGIN` to the Vercel URL and
+   redeploy.
+
+Render's free tier spins down when idle, so the first request after a quiet
+period can take 30 to 60 seconds.
+
 ## Free-tier note
 
 The Groq free tier has a per-minute token limit. If you run several analyses

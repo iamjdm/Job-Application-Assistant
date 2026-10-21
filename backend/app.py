@@ -216,6 +216,8 @@ if __name__ == "__main__":
         # directly-connecting peer's IP matches TRUSTED_PROXY_IP — so a normal
         # visitor spoofing that header gets ignored, and it only takes effect
         # once genuinely deployed behind the specific proxy you name here.
+        # "*" trusts any connecting peer, for platforms (e.g. Render) whose
+        # load-balancer IPs change but which block direct outside access.
         from waitress import serve
 
         serve_kwargs = {"host": host, "port": port}

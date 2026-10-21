@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: job-app-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.11"
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: HOST
+        value: 0.0.0.0
+      # Render's load balancer IPs aren't fixed, so trust whichever proxy
+      # connects. Safe here because outside traffic can only reach the app
+      # through Render's proxy, never directly.
+      - key: TRUSTED_PROXY_IP
+        value: "*"
+      - key: TRUSTED_PROXY_COUNT
+        value: "1"
+      # Entered in the Render dashboard, never committed.
+      - key: GROQ_API_KEY
+        sync: false
+      # The deployed frontend's URL, e.g. https://your-app.vercel.app
+      - key: FRONTEND_ORIGIN
+        sync: false
