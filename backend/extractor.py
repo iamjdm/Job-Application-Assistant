@@ -11,11 +11,16 @@ import trafilatura
 _URL_RE = re.compile(r"^https?://", re.IGNORECASE)
 _MAX_REDIRECTS = 5
 _FETCH_TIMEOUT = 10
+_PASTE_TIP = "Open the posting, copy the job description, and paste it here instead."
 _GENERIC_FETCH_ERROR = (
-    "Couldn't fetch that URL. It may block automated requests (common on "
-    "LinkedIn), or it may not be a reachable public address — try pasting "
-    "the job description text instead."
+    "Couldn't open that link. Check that it's a public job posting address. " + _PASTE_TIP
 )
+_BLOCKED_FETCH_ERROR = (
+    "This site doesn't allow automatic reading (common on LinkedIn, Indeed, "
+    "and Glassdoor). " + _PASTE_TIP
+)
+# Status codes sites send when turning away automated visitors. LinkedIn uses 999.
+_BLOCKED_STATUSES = {401, 403, 429, 503, 999}
 
 
 class ExtractionError(Exception):
@@ -67,6 +72,8 @@ def _safe_fetch(url: str) -> str:
             url = urljoin(url, location)
             continue
 
+        if resp.status_code in _BLOCKED_STATUSES:
+            raise ExtractionError(_BLOCKED_FETCH_ERROR)
         if resp.status_code != 200:
             raise ExtractionError(_GENERIC_FETCH_ERROR)
 
@@ -88,7 +95,8 @@ def get_job_description(job_input: str) -> str:
     extracted = trafilatura.extract(html)
     if not extracted or len(extracted.strip()) < 50:
         raise ExtractionError(
-            "Couldn't find job description text on that page — try pasting it instead."
+            "Couldn't find the job description on that page. Some sites, like "
+            "Workday, load it in a way this app can't read. " + _PASTE_TIP
         )
 
     return extracted
