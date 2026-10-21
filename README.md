@@ -87,5 +87,7 @@ through redirects), file-upload safeguards against decompression bombs and
 malformed files, restricted CORS, security response headers, and a production
 WSGI server with proxy-aware IP detection.
 
-Before a public deployment, HTTPS is handled by the hosting platform, and
-error monitoring is still to be added.
+HTTPS is handled by the hosting platform. Error monitoring uses
+[Sentry](https://sentry.io) and is off unless `SENTRY_DSN` (backend) and
+`VITE_SENTRY_DSN` (frontend) are set. Error reports leave out request bodies,
+local variables, and user details, so resume text isn't sent to Sentry.

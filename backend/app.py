@@ -5,6 +5,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 
 import groq
+import sentry_sdk
 from dotenv import load_dotenv
 from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
@@ -21,6 +22,19 @@ from resume_export import build_resume_docx, build_resume_pdf
 # from resume_export import resume_to_text  # re-enable with before/after scoring
 
 load_dotenv()
+
+# Error monitoring, off unless SENTRY_DSN is set. Resumes are personal data, so
+# keep request bodies, local variables (which hold resume text), and user info
+# out of error reports.
+if os.environ.get("SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=os.environ["SENTRY_DSN"],
+        environment=os.environ.get("SENTRY_ENVIRONMENT", "production"),
+        send_default_pii=False,
+        max_request_body_size="never",
+        include_local_variables=False,
+        traces_sample_rate=0,
+    )
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB

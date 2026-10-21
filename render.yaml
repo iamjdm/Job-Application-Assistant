@@ -27,3 +27,6 @@ services:
       # The deployed frontend's URL, e.g. https://your-app.vercel.app
       - key: FRONTEND_ORIGIN
         sync: false
+      # Optional: the Flask project's Sentry DSN, for error monitoring.
+      - key: SENTRY_DSN
+        sync: false
