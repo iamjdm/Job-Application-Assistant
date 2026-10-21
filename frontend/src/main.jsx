@@ -9,12 +9,19 @@ import App from './App.jsx'
 // Reports go through our backend (tunnel) because ad blockers block sentry.io.
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN
 const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+// In the extension, file paths start with chrome-extension://<id>/, which
+// Sentry's "browser extension errors" inbound filter drops as third-party
+// noise. Relabel them as our own app's files so they get through.
+const extensionRoot = globalThis.chrome?.runtime?.id ? globalThis.chrome.runtime.getURL('') : null
 if (sentryDsn) {
   Sentry.init({
     dsn: sentryDsn,
     tunnel: `${apiBase}/api/monitoring`,
     environment: import.meta.env.MODE,
     sendDefaultPii: false,
+    integrations: extensionRoot
+      ? [Sentry.rewriteFramesIntegration({ root: extensionRoot, prefix: 'app:///' })]
+      : [],
   })
 }
 
