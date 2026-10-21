@@ -9,6 +9,10 @@ from resume_checks import validate_resume
 
 MODEL = "openai/gpt-oss-120b"
 
+# gpt-oss spends hidden reasoning tokens before answering, and they count against
+# Groq's per-minute token limit. "low" keeps that to a minimum for these tasks.
+REASONING_EFFORT = "low"
+
 _client = None
 
 
@@ -117,6 +121,8 @@ def tailor_resume(resume_text: str, job_description: str) -> dict:
                 },
             ],
             temperature=0.4,
+            reasoning_effort=REASONING_EFFORT,
+            max_completion_tokens=4000,
             response_format={"type": "json_object"},
         )
         try:
@@ -140,6 +146,8 @@ def analyze_match(resume_text: str, job_description: str) -> dict:
             },
         ],
         temperature=0.3,
+        reasoning_effort=REASONING_EFFORT,
+        max_completion_tokens=1500,
         response_format={"type": "json_object"},
     )
     return json.loads(completion.choices[0].message.content)
@@ -164,6 +172,8 @@ def verify_cover_letter(resume_text: str, cover_letter: str) -> list[str]:
             },
         ],
         temperature=0,
+        reasoning_effort=REASONING_EFFORT,
+        max_completion_tokens=1500,
         response_format={"type": "json_object"},
     )
     try:
@@ -188,5 +198,7 @@ def generate_cover_letter(resume_text: str, job_description: str, tone: str = "p
             },
         ],
         temperature=0.6,
+        reasoning_effort=REASONING_EFFORT,
+        max_completion_tokens=1500,
     )
     return completion.choices[0].message.content.strip()

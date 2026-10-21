@@ -267,6 +267,18 @@ function App() {
   const [coverLetterText, setCoverLetterText] = useState("");
   const [downloading, setDownloading] = useState(null);
   const [downloadError, setDownloadError] = useState("");
+  // Seconds left before Groq's rate limit resets, after a 429.
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => {
+      // The backend's "try again in N seconds" message is stale once it hits zero.
+      if (cooldown === 1) setError("");
+      setCooldown(cooldown - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -291,6 +303,9 @@ function App() {
       const res = await fetch(API_URL, { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 429 && data.retry_after) {
+          setCooldown(data.retry_after);
+        }
         throw new Error(data.error || "Something went wrong.");
       }
       setResult(data);
@@ -392,11 +407,21 @@ function App() {
             </select>
           </label>
 
-          <button type="submit" disabled={loading}>
-            {loading ? "Analyzing..." : "Analyze"}
+          <button type="submit" disabled={loading || cooldown > 0}>
+            {loading
+              ? "Analyzing..."
+              : cooldown > 0
+                ? `Try again in ${cooldown > 90 ? `${Math.ceil(cooldown / 60)} min` : `${cooldown}s`}`
+                : "Analyze"}
           </button>
 
-          {error && <p className="error">{error}</p>}
+          {cooldown > 0 ? (
+            <p className="error">
+              Groq&apos;s usage limit was reached. Analyze will unlock when it resets.
+            </p>
+          ) : (
+            error && <p className="error">{error}</p>
+          )}
         </form>
 
         <div className="results-panel">

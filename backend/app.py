@@ -1,5 +1,7 @@
 import json
+import math
 import os
+import re
 from concurrent.futures import ThreadPoolExecutor
 
 import groq
@@ -49,6 +51,27 @@ limiter = Limiter(get_remote_address, app=app, storage_uri="memory://")
 @app.errorhandler(429)
 def rate_limited(_e):
     return jsonify({"error": "Too many requests — please wait a moment and try again."}), 429
+
+
+def groq_retry_after(headers) -> int | None:
+    """Seconds until Groq's limit resets, from its 429 response headers.
+
+    Prefers the standard Retry-After header, falling back to Groq's
+    x-ratelimit-reset-tokens, which looks like "7.66s" or "1m26.4s".
+    """
+    retry_after = headers.get("retry-after")
+    if retry_after:
+        try:
+            return max(1, math.ceil(float(retry_after)))
+        except ValueError:
+            pass
+    reset = headers.get("x-ratelimit-reset-tokens", "")
+    match = re.fullmatch(r"(?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?", reset)
+    if reset and match:
+        hours, minutes, seconds = (float(g) if g else 0 for g in match.groups())
+        return max(1, math.ceil(hours * 3600 + minutes * 60 + seconds))
+    return None
+
 
 # A job posting is a few thousand characters; anything past this is almost always
 # scraped boilerplate (nav menus, related-postings lists, etc.), not signal.
@@ -109,8 +132,18 @@ def analyze():
     except groq.AuthenticationError:
         app.logger.exception("Groq authentication failed")
         return jsonify({"error": "Invalid Groq API key. Check backend/.env."}), 500
-    except groq.RateLimitError:
-        return jsonify({"error": "Groq rate limit hit — wait a moment and try again."}), 429
+    except groq.RateLimitError as e:
+        wait = groq_retry_after(e.response.headers)
+        if wait is None:
+            message = "Groq rate limit hit — wait a moment and try again."
+        elif wait <= 90:
+            message = f"Groq rate limit hit — try again in {wait} seconds."
+        else:
+            message = f"Groq rate limit hit — try again in about {round(wait / 60)} minutes."
+        resp = jsonify({"error": message, "retry_after": wait})
+        if wait is not None:
+            resp.headers["Retry-After"] = str(wait)
+        return resp, 429
     except groq.APIStatusError as e:
         app.logger.exception("Groq API error")
         return jsonify({"error": f"Groq API error: {e.message}"}), 502

@@ -1,5 +1,7 @@
 import io
 
+import groq
+import httpx
 import pytest
 
 import app as app_module
@@ -78,6 +80,39 @@ def test_failed_tailoring_returns_clean_error(client, monkeypatch):
     )
     assert response.status_code == 502
     assert "error" in response.get_json()
+
+
+@pytest.mark.parametrize(
+    "headers, expected",
+    [
+        ({"retry-after": "12"}, 12),
+        ({"retry-after": "0.4"}, 1),
+        ({"x-ratelimit-reset-tokens": "7.66s"}, 8),
+        ({"x-ratelimit-reset-tokens": "1m26.4s"}, 87),
+        ({"x-ratelimit-reset-tokens": "2h5m"}, 7500),
+        ({"x-ratelimit-reset-tokens": "soon"}, None),
+        ({}, None),
+    ],
+)
+def test_groq_retry_after(headers, expected):
+    assert app_module.groq_retry_after(headers) == expected
+
+
+def test_groq_rate_limit_reports_wait(client, monkeypatch):
+    def limited(*a, **k):
+        req = httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions")
+        resp = httpx.Response(429, headers={"retry-after": "12"}, request=req)
+        raise groq.RateLimitError("rate limited", response=resp, body=None)
+
+    monkeypatch.setattr(app_module, "analyze_match", limited)
+    response = client.post(
+        "/api/analyze",
+        data={"job_input": "Backend role needing Python.", "resume_text": "Jon Doe."},
+    )
+    assert response.status_code == 429
+    assert response.headers["Retry-After"] == "12"
+    assert response.get_json()["retry_after"] == 12
+    assert "12 seconds" in response.get_json()["error"]
 
 
 def test_resume_pdf_export_requires_data(client):
