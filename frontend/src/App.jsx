@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
+import { readCurrentJobPage } from "./jobPage";
 import { IS_EXTENSION, loadSavedResume, removeSavedResume, saveResume } from "./savedResume";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -64,7 +65,7 @@ function cleanResume(resume) {
   return copy;
 }
 
-function SourceField({ label, textPlaceholder, textHint, textValue, onTextChange, file, onFileChange, rows }) {
+function SourceField({ label, action, textPlaceholder, textHint, textValue, onTextChange, file, onFileChange, rows }) {
   const [mode, setMode] = useState("paste");
 
   return (
@@ -88,6 +89,8 @@ function SourceField({ label, textPlaceholder, textHint, textValue, onTextChange
           </button>
         </div>
       </div>
+
+      {action}
 
       {mode === "paste" ? (
         <>
@@ -311,6 +314,23 @@ function App() {
       .catch(() => {});
   }, []);
 
+  // Extension only: fill the job posting from the tab the user is on.
+  const [readingPage, setReadingPage] = useState(false);
+  const [pageError, setPageError] = useState("");
+
+  async function handleUseJobPage() {
+    setPageError("");
+    setReadingPage(true);
+    try {
+      setJobText(await readCurrentJobPage());
+      setJobFile(null);
+    } catch (err) {
+      setPageError(err.message);
+    } finally {
+      setReadingPage(false);
+    }
+  }
+
   function handleRemoveSavedResume() {
     removeSavedResume()
       .then(() => {
@@ -444,8 +464,22 @@ function App() {
         <form className="input-panel" onSubmit={handleSubmit}>
           <SourceField
             label="Job posting"
+            action={
+              IS_EXTENSION && (
+                <div className="job-page-action">
+                  <button type="button" onClick={handleUseJobPage} disabled={readingPage}>
+                    {readingPage ? "Reading page..." : "Use this job page"}
+                  </button>
+                  {pageError && <p className="error">{pageError}</p>}
+                </div>
+              )
+            }
             textPlaceholder="Paste the job description text"
-            textHint="You can also paste a link, but sites like LinkedIn, Indeed, and Workday block automatic reading. Pasting the text always works."
+            textHint={
+              IS_EXTENSION
+                ? "On LinkedIn or Indeed, click Use this job page. On other sites, highlight the job description first, or paste it here."
+                : "You can also paste a link, but sites like LinkedIn, Indeed, and Workday block automatic reading. Pasting the text always works."
+            }
             textValue={jobText}
             onTextChange={setJobText}
             file={jobFile}

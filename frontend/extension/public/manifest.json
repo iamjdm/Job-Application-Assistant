@@ -15,6 +15,12 @@
     "type": "module"
   },
   "permissions": [
-    "sidePanel"
+    "sidePanel",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.linkedin.com/*",
+    "https://*.indeed.com/*"
   ]
 }
