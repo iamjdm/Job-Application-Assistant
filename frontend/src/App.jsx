@@ -6,9 +6,9 @@ const API_URL = `${API_BASE}/api/analyze`;
 const EXPORT_URL = `${API_BASE}/api/export`;
 
 function scoreTier(score) {
-  if (score >= 75) return "tier-high";
-  if (score >= 45) return "tier-mid";
-  return "tier-low";
+  if (score >= 75) return { className: "tier-high", label: "Strong fit" };
+  if (score >= 45) return { className: "tier-mid", label: "Moderate fit" };
+  return { className: "tier-low", label: "Low fit" };
 }
 
 function DownloadMenu({ disabled, busy, onPick }) {
@@ -432,11 +432,15 @@ function App() {
 
           {result && (
             <>
-              <section className="score-section">
-                <div className={`score-circle ${scoreTier(result.score)}`}>
+              <section className={`score-section ${scoreTier(result.score).className}`}>
+                <div className="score-circle" aria-label={`Match score ${result.score} out of 100`}>
                   {result.score}
                 </div>
-                <p>{result.summary}</p>
+                <div className="score-details">
+                  <h3>Resume match score</h3>
+                  <p className="score-tier">{scoreTier(result.score).label}</p>
+                  <p>{result.summary}</p>
+                </div>
               </section>
 
               <section>

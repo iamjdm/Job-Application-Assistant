@@ -121,8 +121,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 1.05rem;
+  font-weight: 600;
   color: var(--text-h);
   margin-bottom: 0.5rem;
 }
@@ -185,8 +185,8 @@
 
 .tone-field {
   display: block;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 1.05rem;
+  font-weight: 600;
   color: var(--text-h);
   margin-bottom: 1rem;
 }
@@ -277,7 +277,7 @@
 }
 
 .results-panel h3 {
-  font-size: 0.85rem;
+  font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
@@ -307,25 +307,38 @@
   color: var(--text-h);
 }
 
-.score-circle.tier-high {
-  border-color: var(--success);
-  color: var(--success);
+.score-section.tier-high {
+  --tier-color: var(--success);
 }
 
-.score-circle.tier-mid {
-  border-color: var(--warning);
-  color: var(--warning);
+.score-section.tier-mid {
+  --tier-color: var(--warning);
 }
 
-.score-circle.tier-low {
-  border-color: var(--danger);
-  color: var(--danger);
+.score-section.tier-low {
+  --tier-color: var(--danger);
+}
+
+.score-section .score-circle {
+  border-color: var(--tier-color);
+  color: var(--tier-color);
+}
+
+.score-details h3 {
+  margin-bottom: 0.15rem;
 }
 
 .score-section p {
   font-size: 0.9rem;
   color: var(--text);
   line-height: 1.5;
+}
+
+.score-section .score-tier {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--tier-color);
+  margin-bottom: 0.4rem;
 }
 
 .tag-list {
