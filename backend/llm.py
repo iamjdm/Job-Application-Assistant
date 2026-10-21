@@ -37,8 +37,14 @@ markdown fences, matching this exact shape:
   "score": <integer 0-100, or null if is_job_description is false>,
   "matched_skills": [<string>, ...],
   "missing_skills": [<string>, ...],
-  "summary": "<if is_job_description is false, briefly explain what the text actually looks like instead (e.g. 'This looks like a login page, not a job posting.'); otherwise a one or two sentence explanation of the score>"
+  "summary": "<if is_job_description is false, briefly explain what the text actually looks like instead (e.g. 'This looks like a login page, not a job posting.'); otherwise one or two sentences, addressed to the candidate as 'your resume', on what the role needs, where the resume matches, and the most important gaps>"
 }
+
+When is_job_description is true, the summary is shown next to the score, which the app \
+already labels as a strong, moderate, or low fit. So in the summary:
+- Do not rate the fit or restate the score (no "strong fit", "moderate match", "low \
+score", "60%", etc.).
+- Do not mention whether the text is a genuine job posting.
 """
 
 COVER_LETTER_SYSTEM_PROMPT = """You write concise, specific cover letters. Use ONLY the \
