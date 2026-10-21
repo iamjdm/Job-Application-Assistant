@@ -63,7 +63,7 @@ function cleanResume(resume) {
   return copy;
 }
 
-function SourceField({ label, textPlaceholder, textValue, onTextChange, file, onFileChange, rows }) {
+function SourceField({ label, textPlaceholder, textHint, textValue, onTextChange, file, onFileChange, rows }) {
   const [mode, setMode] = useState("paste");
 
   return (
@@ -89,12 +89,15 @@ function SourceField({ label, textPlaceholder, textValue, onTextChange, file, on
       </div>
 
       {mode === "paste" ? (
-        <textarea
-          placeholder={textPlaceholder}
-          value={textValue}
-          onChange={(e) => onTextChange(e.target.value)}
-          rows={rows}
-        />
+        <>
+          <textarea
+            placeholder={textPlaceholder}
+            value={textValue}
+            onChange={(e) => onTextChange(e.target.value)}
+            rows={rows}
+          />
+          {textHint && <p className="field-hint">{textHint}</p>}
+        </>
       ) : (
         <div className="file-drop">
           <input
@@ -379,7 +382,8 @@ function App() {
         <form className="input-panel" onSubmit={handleSubmit}>
           <SourceField
             label="Job posting"
-            textPlaceholder="https://... or paste the job description text"
+            textPlaceholder="Paste the job description text"
+            textHint="You can also paste a link, but sites like LinkedIn, Indeed, and Workday block automatic reading. Pasting the text always works."
             textValue={jobText}
             onTextChange={setJobText}
             file={jobFile}

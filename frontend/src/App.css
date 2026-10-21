@@ -238,6 +238,13 @@
   color: var(--text-muted);
 }
 
+.field-hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
 .input-panel button[type="submit"] {
   width: 100%;
   padding: 0.75rem;
