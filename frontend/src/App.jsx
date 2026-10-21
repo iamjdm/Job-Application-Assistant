@@ -3,6 +3,9 @@ import "./App.css";
 import { readCurrentJobPage } from "./jobPage";
 import { IS_EXTENSION, loadSavedResume, removeSavedResume, saveResume } from "./savedResume";
 
+// The extension isn't served from the website, so it links there in full.
+const PRIVACY_URL = IS_EXTENSION ? `${import.meta.env.VITE_SITE_URL}/privacy.html` : "/privacy.html";
+
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const API_URL = `${API_BASE}/api/analyze`;
 const EXPORT_URL = `${API_BASE}/api/export`;
@@ -703,6 +706,12 @@ function App() {
           )}
         </div>
       </div>
+
+      <footer className="app-footer">
+        <a href={PRIVACY_URL} target="_blank" rel="noreferrer">
+          Privacy policy
+        </a>
+      </footer>
     </div>
   );
 }

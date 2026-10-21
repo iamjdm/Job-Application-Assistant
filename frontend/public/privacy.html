@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy | Job Application Assistant</title>
+    <style>
+      :root {
+        --bg: #f8f8f7;
+        --surface: #ffffff;
+        --text: #3f3f46;
+        --text-h: #18181b;
+        --text-muted: #71717a;
+        --border: #e4e4e7;
+        --accent: #2563eb;
+        --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.6;
+        padding: 2.5rem max(16px, env(safe-area-inset-right, 0px)) 3rem max(16px, env(safe-area-inset-left, 0px));
+      }
+      main {
+        max-width: 42rem;
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 2rem clamp(1.25rem, 4vw, 2.5rem);
+      }
+      h1 {
+        color: var(--text-h);
+        font-size: 1.6rem;
+        margin: 0 0 0.25rem;
+        letter-spacing: -0.01em;
+      }
+      h2 {
+        color: var(--text-h);
+        font-size: 1.1rem;
+        margin: 2rem 0 0.5rem;
+      }
+      p, ul { margin: 0 0 0.85rem; }
+      ul { padding-left: 1.25rem; }
+      li { margin-bottom: 0.35rem; }
+      a { color: var(--accent); }
+      .updated { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+      .back { display: inline-block; margin-bottom: 1rem; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="/">Back to Job Application Assistant</a>
+      <h1>Privacy Policy</h1>
+      <p class="updated">Last updated October 21, 2026</p>
+
+      <p>
+        Job Application Assistant is built and run by Jonathan Mimnaugh. It compares your
+        resume to a job posting and writes a tailored resume and cover letter. This policy
+        covers the website and the Chrome extension.
+      </p>
+      <p>
+        In short: your resume and the job posting are sent to our server and to an AI
+        provider to produce your results, and then they're discarded. We don't keep them,
+        sell them, or use them for anything else.
+      </p>
+
+      <h2>What you send us</h2>
+      <p>When you click Analyze, the app sends our server:</p>
+      <ul>
+        <li>Your resume, as pasted text or an uploaded PDF, DOCX, or TXT file.</li>
+        <li>The job posting, as pasted text, an uploaded file, or a link.</li>
+        <li>The cover letter tone you picked.</li>
+      </ul>
+      <p>
+        When you download a resume or cover letter, the app sends the text you're
+        downloading so the server can turn it into a PDF or DOCX file.
+      </p>
+
+      <h2>What happens to it</h2>
+      <ul>
+        <li>
+          Our server reads the text out of your files and sends your resume and the job
+          posting to <a href="https://groq.com/privacy-policy/">Groq</a>, the AI provider
+          that scores the match and writes your tailored resume and cover letter.
+        </li>
+        <li>
+          If you give a link, our server downloads that page to find the job description.
+        </li>
+        <li>
+          The results are sent back to your browser. Our server doesn't save your resume,
+          the job posting, or your results. It has no database, and nothing you send is
+          written to disk.
+        </li>
+        <li>
+          Like most web servers, ours records basic technical details of each request, such
+          as your IP address, the time, and which page was requested. Our hosting provider
+          keeps these logs for a limited time. We also hold your IP address briefly in memory
+          to limit how many requests one person can make per minute.
+        </li>
+      </ul>
+
+      <h2>The Chrome extension</h2>
+      <ul>
+        <li>
+          <strong>Saved resume.</strong> After your first successful analysis, the extension
+          saves your resume in your browser, on your computer only. It's never stored on our
+          server. Click Remove saved resume to delete it, or uninstall the extension, which
+          deletes it too.
+        </li>
+        <li>
+          <strong>Reading job pages.</strong> When you click Use this job page, the extension
+          reads the job description from the tab you're on and puts it in the job posting
+          box. It reads the page only when you click that button. It doesn't track your
+          browsing or run in the background on the sites you visit.
+        </li>
+        <li>
+          <strong>Permissions.</strong> The extension can read LinkedIn and Indeed job pages,
+          and any other page only after you click its toolbar icon on that page. It uses
+          these permissions only to read job descriptions when you ask.
+        </li>
+      </ul>
+
+      <h2>Error reports</h2>
+      <p>
+        When something breaks, the app sends a report to
+        <a href="https://sentry.io/privacy/">Sentry</a> so we can fix it. Reports include
+        technical details such as the error message, the browser and operating system, and
+        which part of the app failed. They're set up to leave out your resume, the job
+        posting, your results, and your IP address.
+      </p>
+
+      <h2>What we don't do</h2>
+      <ul>
+        <li>We don't sell or share your information with anyone beyond the providers named here.</li>
+        <li>We don't use your information for advertising.</li>
+        <li>We don't use cookies, analytics, or tracking on the website or in the extension.</li>
+        <li>We don't use your resume or job postings to train AI models.</li>
+        <li>We don't ask you to create an account.</li>
+      </ul>
+
+      <h2>Who else handles your information</h2>
+      <ul>
+        <li><a href="https://groq.com/privacy-policy/">Groq</a> processes your resume and the job posting to generate results.</li>
+        <li><a href="https://render.com/privacy">Render</a> hosts our server.</li>
+        <li><a href="https://vercel.com/legal/privacy-policy">Vercel</a> hosts the website.</li>
+        <li><a href="https://sentry.io/privacy/">Sentry</a> receives error reports.</li>
+      </ul>
+      <p>Each handles information under its own privacy policy, linked above.</p>
+
+      <h2>Changes to this policy</h2>
+      <p>
+        If this policy changes, we'll update it on this page and change the date at the top.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions about privacy? Open an issue on the project's
+        <a href="https://github.com/iamjdm/Job-Application-Assistant/issues">GitHub page</a>.
+      </p>
+    </main>
+  </body>
+</html>

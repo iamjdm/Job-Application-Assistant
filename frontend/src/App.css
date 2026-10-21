@@ -680,3 +680,13 @@
 .job-page-action .error {
   margin-top: 0.5rem;
 }
+
+.app-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.app-footer a {
+  color: var(--text-muted);
+}
