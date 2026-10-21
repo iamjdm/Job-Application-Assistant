@@ -4,8 +4,18 @@
   "version": "0.1.0",
   "description": "Match your resume to a job posting, then get a tailored resume and cover letter.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1cEsO4zGHMfDjlPJy5GDlDCnL4fYXmsE9tceNgVdQpfBdzvKzMHq15KcBdE2H9VppZq6Zj7VI73fhxfl3mYG9/d8L3g+erUPBtU8JeLBl1iZjqY7COP54aZOp9uC6Y8bPsR3l0hPpJPq+RwFtrYnxX81D8Yv25CiJo7opEC6gE89iSBRqiCbhR17Q9FPzk3rcVkwJILo6RAprrx8Wrqfm029kVdwNygUxtFhvPqYoQghHVVwH3Cra2SO4YKdikPzpluxI5nqlE4cPVF4lnbGC9X5Wt9a3Q56M5biasIj5Yxn/lg+LFVPnqHFjKBc4Qykp7lSclFhYlF7aldxbSQB1QIDAQAB",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "action": {
-    "default_title": "Open Job Application Assistant"
+    "default_title": "Open Job Application Assistant",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
   },
   "side_panel": {
     "default_path": "sidepanel.html"

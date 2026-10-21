@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Scaled to fit the 96 px art area Chrome recommends inside a 128 px icon. -->
+  <g transform="translate(64 64) scale(0.923) translate(-64 -64)">
+    <rect x="22" y="12" width="84" height="104" rx="12" fill="#2563eb"/>
+    <rect x="38" y="34" width="52" height="8" rx="4" fill="#ffffff"/>
+    <rect x="38" y="52" width="36" height="8" rx="4" fill="#ffffff" opacity="0.8"/>
+    <rect x="38" y="70" width="44" height="8" rx="4" fill="#ffffff" opacity="0.8"/>
+    <path d="M62 94l10 10 20-22" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
