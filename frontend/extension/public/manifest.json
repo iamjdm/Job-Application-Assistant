@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Job Application Assistant",
+  "version": "0.1.0",
+  "description": "Match your resume to a job posting, then get a tailored resume and cover letter.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1cEsO4zGHMfDjlPJy5GDlDCnL4fYXmsE9tceNgVdQpfBdzvKzMHq15KcBdE2H9VppZq6Zj7VI73fhxfl3mYG9/d8L3g+erUPBtU8JeLBl1iZjqY7COP54aZOp9uC6Y8bPsR3l0hPpJPq+RwFtrYnxX81D8Yv25CiJo7opEC6gE89iSBRqiCbhR17Q9FPzk3rcVkwJILo6RAprrx8Wrqfm029kVdwNygUxtFhvPqYoQghHVVwH3Cra2SO4YKdikPzpluxI5nqlE4cPVF4lnbGC9X5Wt9a3Q56M5biasIj5Yxn/lg+LFVPnqHFjKBc4Qykp7lSclFhYlF7aldxbSQB1QIDAQAB",
+  "action": {
+    "default_title": "Open Job Application Assistant"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "sidePanel"
+  ]
+}
