@@ -480,7 +480,7 @@ function App() {
             textPlaceholder="Paste the job description text"
             textHint={
               IS_EXTENSION
-                ? "On LinkedIn or Indeed, click Use this job page. On other sites, highlight the job description first, or paste it here."
+                ? "Click Use this job page to fill this in from the posting you're viewing, or paste the description here."
                 : "You can also paste a link, but sites like LinkedIn, Indeed, and Workday block automatic reading. Pasting the text always works."
             }
             textValue={jobText}
